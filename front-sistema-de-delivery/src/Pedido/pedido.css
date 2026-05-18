@@ -1,4 +1,4 @@
-<<<<<<< Updated upstream
+
 .pedidos-container {
   max-width: 900px;
   display: flex;
@@ -843,7 +843,8 @@
   outline: none;
   border-color: #dc2626;
   box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
-=======
+}
+
 .pedido-confirmado-container {
   max-width: 960px;
 }
@@ -854,6 +855,47 @@
   border-radius: 1rem;
   padding: 2rem;
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+.pedido-confirmacao-card {
+  background-color: #dcfce7;
+  border: 1px solid #bbf7d0;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.pedido-confirmacao-header {
+  color: #166534;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.pedido-confirmacao-detalhes {
+  display: grid;
+  gap: 0.5rem;
+  margin: 1rem 0;
+  color: #14532d;
+}
+
+.pedido-confirmacao-detalhes span {
+  display: flex;
+  justify-content: space-between;
+}
+
+.btn-primary-sm {
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-primary-sm:hover {
+  background-color: #b91c1c;
 }
 
 .pedido-status-badge {
@@ -935,12 +977,10 @@
 .pedido-acoes {
   display: flex;
   justify-content: flex-end;
->>>>>>> Stashed changes
 }
 
 .btn-primary {
   background-color: #dc2626;
-<<<<<<< Updated upstream
   color: #ffffff;
   border: none;
   padding: 0.65rem 1.25rem;
@@ -949,21 +989,11 @@
   font-size: 0.9rem;
   cursor: pointer;
   transition: background-color 0.2s;
-=======
-  color: white;
-  border: none;
-  border-radius: 0.75rem;
-  padding: 0.9rem 1.25rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
->>>>>>> Stashed changes
 }
 
 .btn-primary:hover {
   background-color: #b91c1c;
 }
-<<<<<<< Updated upstream
 
 .btn-outline {
   background-color: transparent;
@@ -1640,5 +1670,3 @@
     height: 90vh;
   }
 }
-=======
->>>>>>> Stashed changes

@@ -154,6 +154,140 @@
   color: #111827;
 }
 
+.carrinho-confirmacao-container {
+  max-width: 1080px;
+}
+
+.confirmacao-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 1.5rem;
+}
+
+.confirmacao-card {
+  background: #ffffff;
+  border: 1px solid #f3f4f6;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+.confirmacao-card h3 {
+  margin-bottom: 0.5rem;
+  color: #111827;
+}
+
+.endereco-salvo-section {
+  margin-bottom: 1rem;
+}
+
+.enderecos-salvos-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.endereco-badge {
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  color: #374151;
+  padding: 0.5rem 0.85rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.endereco-badge.active {
+  border-color: #dc2626;
+  color: #dc2626;
+  background: #fef2f2;
+}
+
+.endereco-select {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 0.75rem;
+  padding: 0.85rem 1rem;
+  margin-top: 0.5rem;
+  font-size: 0.95rem;
+  color: #111827;
+  background: #ffffff;
+}
+
+.confirmacao-textarea,
+.confirmacao-card input {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 0.75rem;
+  padding: 0.85rem 1rem;
+  margin-top: 0.5rem;
+  font-size: 0.95rem;
+  color: #111827;
+  background: #ffffff;
+}
+
+.confirmacao-textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.confirmacao-card input {
+  height: 44px;
+}
+
+.confirmacao-resumo .confirmacao-item-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  color: #374151;
+}
+
+.confirmacao-resumo .confirmacao-item-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  color: #374151;
+}
+
+.confirmacao-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.btn-outline {
+  background: none;
+  border: 1px solid #d1d5db;
+  color: #374151;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-outline:hover {
+  background: #f3f4f6;
+}
+
+@media (max-width: 900px) {
+  .carrinho-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .confirmacao-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .resumo-pedido,
+  .confirmacao-resumo {
+    position: static;
+  }
+}
+
 .resumo-linha,
 .resumo-total {
   display: flex;
