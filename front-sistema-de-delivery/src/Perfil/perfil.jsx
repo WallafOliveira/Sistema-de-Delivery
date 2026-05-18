@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './perfil.css';
 
 const Perfil = () => {
+  const [isEditarDadosOpen, setIsEditarDadosOpen] = useState(false);
+  const [isNovoEnderecoOpen, setIsNovoEnderecoOpen] = useState(false);
+
   // Dados simulados do usuário para demonstração
   const usuario = {
     nome: 'João da Silva',
@@ -49,8 +52,7 @@ const Perfil = () => {
           </div>
 
           <div className="perfil-acoes">
-            <button className="btn-outline">Editar Dados</button>
-            <button className="btn-outline text-red">Alterar Senha</button>
+            <button className="btn-outline" onClick={() => setIsEditarDadosOpen(true)}>Editar Dados</button>
           </div>
         </section>
 
@@ -58,7 +60,7 @@ const Perfil = () => {
         <section className="enderecos-section">
           <div className="enderecos-header">
             <h3>Meus Endereços</h3>
-            <button className="btn-primary">+ Novo Endereço</button>
+            <button className="btn-primary" onClick={() => setIsNovoEnderecoOpen(true)}>+ Novo Endereço</button>
           </div>
 
           <div className="enderecos-lista">
@@ -81,6 +83,69 @@ const Perfil = () => {
           </div>
         </section>
       </div>
+      {/* Modal Editar Dados */}
+      {isEditarDadosOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h3>Editar Dados</h3>
+              <button className="btn-close" onClick={() => setIsEditarDadosOpen(false)}>&times;</button>
+            </div>
+            <form onSubmit={(e) => { e.preventDefault(); setIsEditarDadosOpen(false); }}>
+              <div className="form-group">
+                <label>Nome</label>
+                <input type="text" defaultValue={usuario.nome} required />
+              </div>
+              <div className="form-group">
+                <label>E-mail</label>
+                <input type="email" defaultValue={usuario.email} required />
+              </div>
+              <div className="form-group">
+                <label>Telefone</label>
+                <input type="text" defaultValue={usuario.telefone} required />
+              </div>
+              <div className="modal-actions">
+                <button type="button" className="btn-outline" onClick={() => setIsEditarDadosOpen(false)}>Cancelar</button>
+                <button type="submit" className="btn-primary">Salvar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Novo Endereço */}
+      {isNovoEnderecoOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h3>Novo Endereço</h3>
+              <button className="btn-close" onClick={() => setIsNovoEnderecoOpen(false)}>&times;</button>
+            </div>
+            <form onSubmit={(e) => { e.preventDefault(); setIsNovoEnderecoOpen(false); }}>
+              <div className="form-group">
+                <label>Título (ex: Casa, Trabalho)</label>
+                <input type="text" required />
+              </div>
+              <div className="form-group">
+                <label>Rua</label>
+                <input type="text" required />
+              </div>
+              <div className="form-group">
+                <label>Bairro</label>
+                <input type="text" required />
+              </div>
+              <div className="form-group">
+                <label>Cidade - Estado</label>
+                <input type="text" required />
+              </div>
+              <div className="modal-actions">
+                <button type="button" className="btn-outline" onClick={() => setIsNovoEnderecoOpen(false)}>Cancelar</button>
+                <button type="submit" className="btn-primary">Salvar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
