@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 import React, { useState } from 'react';
 import './pedido.css';
 
@@ -219,6 +220,67 @@ const Pedido = () => {
 
   const pedidosEmAndamento = pedidos.filter(p => p.status !== 'Entregue' && p.status !== 'Cancelado');
   const historicoPedidos = pedidos.filter(p => p.status === 'Entregue' || p.status === 'Cancelado');
+=======
+import React from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import './pedido.css';
+
+const Pedido = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const pedidoConfirmado = location.state?.pedidoConfirmado;
+  const pedido = location.state?.pedido;
+
+  if (pedidoConfirmado && pedido) {
+    return (
+      <div className="pedido-confirmado-container">
+        <div className="pedido-confirmado-card">
+          <div className="pedido-status-badge">Pedido confirmado</div>
+          <h2>Obrigado pelo pedido!</h2>
+          <p>Seu pedido foi enviado ao restaurante e está em preparação.</p>
+
+          <div className="pedido-resumo">
+            <div className="pedido-resumo-item">
+              <span>Número do pedido</span>
+              <strong>#{pedido.id}</strong>
+            </div>
+            <div className="pedido-resumo-item">
+              <span>Data</span>
+              <strong>{pedido.data}</strong>
+            </div>
+            <div className="pedido-resumo-item">
+              <span>Itens</span>
+              <strong>{pedido.itens.length} produtos</strong>
+            </div>
+            <div className="pedido-resumo-item">
+              <span>Total</span>
+              <strong>R$ {pedido.total.toFixed(2)}</strong>
+            </div>
+          </div>
+
+          <div className="pedido-itens-list">
+            {pedido.itens.map((item) => (
+              <div key={item.id} className="pedido-item-card">
+                <div>
+                  <h4>{item.nome}</h4>
+                  <p>{item.descricao}</p>
+                </div>
+                <div className="pedido-item-valor">
+                  <span>{item.quantidade}x</span>
+                  <strong>R$ {(item.preco * item.quantidade).toFixed(2)}</strong>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="pedido-acoes">
+            <button className="btn-primary" onClick={() => navigate('/')}>Continuar comprando</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+>>>>>>> Stashed changes
 
   return (
     <>
