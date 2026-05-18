@@ -1,0 +1,259 @@
+.favoritos-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.favoritos-header {
+  margin-bottom: 0.5rem;
+}
+
+.favoritos-header h2 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #111827;
+  margin: 0 0 0.25rem 0;
+  letter-spacing: -0.5px;
+}
+
+.favoritos-header p {
+  color: #6b7280;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+/* Badge de contagem */
+.count-badge-fav {
+  background-color: #fef2f2;
+  color: #dc2626;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid #fee2e2;
+}
+
+/* Grid de Lojas Favoritadas */
+.grid-lojas-favoritas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.loja-card-fav {
+  background-color: #ffffff;
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f3f4f6;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.loja-card-fav:hover {
+  box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.12);
+  transform: translateY(-4px);
+}
+
+.loja-img-wrapper-fav {
+  height: 120px;
+  background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+}
+
+.loja-emoji-banner-fav {
+  transition: transform 0.3s ease;
+}
+
+.loja-card-fav:hover .loja-emoji-banner-fav {
+  transform: scale(1.2) rotate(-5deg);
+}
+
+.loja-badge-category-fav {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(4px);
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #1f2937;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.loja-favorite-btn-fav {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0;
+  z-index: 10;
+}
+
+.loja-favorite-btn-fav:hover {
+  background-color: #ffffff;
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(220, 38, 38, 0.15);
+}
+
+.loja-favorite-btn-fav:active {
+  transform: scale(0.92);
+}
+
+.loja-favorite-btn-fav.active {
+  background-color: #fff1f2;
+  border-color: #fecdd3;
+}
+
+.loja-card-content-fav {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.loja-card-content-fav h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+  color: #111827;
+}
+
+.loja-meta-info-fav {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.loja-rating-fav {
+  color: #b45309;
+  font-weight: 600;
+}
+
+.loja-delivery-price-fav {
+  color: #15803d;
+  font-weight: 600;
+}
+
+.dot-divider-fav {
+  color: #d1d5db;
+}
+
+/* --- Cartão de Lista Vazia --- */
+.empty-favorites-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4.5rem 2rem;
+  background-color: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  border: 1px solid #f3f4f6;
+  text-align: center;
+  max-width: 550px;
+  margin: 2rem auto;
+}
+
+.empty-heart-icon-wrapper {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background-color: #fff1f2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  border: 2px dashed #fecdd3;
+  animation: emptyHeartPulse 2s infinite ease-in-out;
+}
+
+.empty-heart-emoji {
+  font-size: 3rem;
+  display: block;
+}
+
+@keyframes emptyHeartPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.1); }
+  50% { transform: scale(1.06); box-shadow: 0 0 0 10px rgba(244, 63, 94, 0.05); }
+}
+
+.empty-favorites-card h4 {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin: 0 0 0.75rem 0;
+  letter-spacing: -0.3px;
+}
+
+.empty-favorites-card p {
+  color: #6b7280;
+  font-size: 0.925rem;
+  line-height: 1.5;
+  margin: 0 0 2rem 0;
+  max-width: 440px;
+}
+
+.btn-explore-stores {
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  padding: 0.85rem 2rem;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.2);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-explore-stores:hover {
+  background-color: #b91c1c;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(220, 38, 38, 0.3);
+}
+
+.btn-explore-stores:active {
+  transform: translateY(0);
+}
+
+/* --- Animação --- */
+.animate-scale-up {
+  animation: scaleUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes scaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

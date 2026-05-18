@@ -7,6 +7,7 @@ import Home from './Home/home';
 import Pedido from './Pedido/pedido';
 import Carrinho from './Carinho/carinho';
 import Perfil from './Perfil/perfil';
+import Favoritos from './Favoritos/favoritos';
 
 // Importando a tela da Loja (certifique-se de ter criado esta pasta e arquivo)
 import Loja from './Loja/loja'; 
@@ -20,6 +21,7 @@ function App() {
   // Trocamos 'id' por 'path' (o caminho real da URL)
   const menuItems = [
     { path: '/', name: 'Início (Lojas)', icon: '🏠' },
+    { path: '/favoritos', name: 'Meus Favoritos', icon: '❤️' },
     { path: '/pedido', name: 'Meus Pedidos', icon: '🧾' },
     { path: '/carrinho', name: 'Carrinho', icon: '🛒' },
     { path: '/perfil', name: 'Perfil', icon: '👤' },
@@ -66,6 +68,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/loja/:id" element={<Loja />} /> {/* Rota dinâmica para a loja */}
+          <Route path="/favoritos" element={<Favoritos />} />
           <Route path="/pedido" element={<Pedido />} />
           <Route path="/carrinho" element={<Carrinho />} />
           <Route path="/perfil" element={<Perfil />} />

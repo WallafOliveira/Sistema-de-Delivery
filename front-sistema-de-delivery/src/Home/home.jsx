@@ -1,12 +1,30 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom'; // Importe o hook
 import './home.css';
+import { todasLojas } from '../data/lojas';
 
 const Home = () => {
   const navigate = useNavigate(); // Inicialize o hook
   const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [searchQuery, setSearchQuery] = useState('');
   const [onlyFreeDelivery, setOnlyFreeDelivery] = useState(false);
+
+  // Estados para Favoritos
+  const [favoritos, setFavoritos] = useState(() => {
+    const saved = localStorage.getItem('favoritos_restaurantes');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const toggleFavorito = (id) => {
+    let novosFavoritos;
+    if (favoritos.includes(id)) {
+      novosFavoritos = favoritos.filter(favId => favId !== id);
+    } else {
+      novosFavoritos = [...favoritos, id];
+    }
+    setFavoritos(novosFavoritos);
+    localStorage.setItem('favoritos_restaurantes', JSON.stringify(novosFavoritos));
+  };
 
   // Categorias estilo iFood
   const categorias = [
@@ -18,18 +36,6 @@ const Home = () => {
     { id: 'Japonesa', nome: 'Japonesa', emoji: '🍣', color: 'rgba(14, 165, 233, 0.1)' },
     { id: 'Saudável', nome: 'Saudável', emoji: '🥗', color: 'rgba(34, 197, 94, 0.1)' },
     { id: 'Bebidas', nome: 'Bebidas', emoji: '🥤', color: 'rgba(168, 85, 247, 0.1)' },
-  ];
-
-  // Dados reais e dinâmicos de lojas com categorias associadas
-  const todasLojas = [
-    { id: 1, nome: 'Burger House', categoria: 'Lanches', img: '🍔', nota: '4.8', tempo: '20-30 min', frete: 'Grátis' },
-    { id: 2, nome: 'Bella Pizza', categoria: 'Pizzaria', img: '🍕', nota: '4.9', tempo: '30-40 min', frete: 'R$ 4,90' },
-    { id: 3, nome: 'Pão de Ouro Padaria', categoria: 'Padaria', img: '🍞', nota: '4.7', tempo: '15-25 min', frete: 'R$ 2,90' },
-    { id: 4, nome: 'Doce Sonho Confeitaria', categoria: 'Doces & Bolos', img: '🍰', nota: '4.6', tempo: '25-35 min', frete: 'R$ 5,00' },
-    { id: 5, nome: 'Sushi Hakura', categoria: 'Japonesa', img: '🍣', nota: '4.9', tempo: '40-50 min', frete: 'Grátis' },
-    { id: 6, nome: 'Green Salads', categoria: 'Saudável', img: '🥗', nota: '4.5', tempo: '20-30 min', frete: 'R$ 3,90' },
-    { id: 7, nome: 'Adega Imperial', categoria: 'Bebidas', img: '🥤', nota: '4.8', tempo: '10-20 min', frete: 'R$ 1,99' },
-    { id: 8, nome: 'Texas Grill & Burger', categoria: 'Lanches', img: '🍔', nota: '4.7', tempo: '25-35 min', frete: 'Grátis' },
   ];
   
   // Filtragem de lojas com base na categoria selecionada, texto de pesquisa e frete grátis
@@ -113,6 +119,16 @@ const Home = () => {
               <div className="loja-img-wrapper">
                 <span className="loja-emoji-banner">{loja.img}</span>
                 <span className="loja-badge-category">{loja.categoria}</span>
+                <button 
+                  className={`loja-favorite-btn ${favoritos.includes(loja.id) ? 'active' : ''}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleFavorito(loja.id);
+                  }}
+                  title={favoritos.includes(loja.id) ? "Remover dos Favoritos" : "Adicionar aos Favoritos"}
+                >
+                  {favoritos.includes(loja.id) ? '❤️' : '🤍'}
+                </button>
               </div>
               <div className="loja-card-content">
                 <h3>{loja.nome}</h3>

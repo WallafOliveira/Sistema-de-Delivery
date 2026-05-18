@@ -130,17 +130,80 @@
   background-color: #ffffff;
   padding: 1.25rem;
   border-radius: 0.75rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-  border: 1px solid #f3f4f6;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.04);
+  border: 1px solid #e5e7eb;
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  transition: border-color 0.2s;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.endereco-card.principal {
+.endereco-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+.endereco-card:active {
+  transform: translateY(0);
+}
+
+.endereco-card.ativo {
   border-color: #fca5a5;
-  /* Borda levemente vermelha para o endereço principal */
+  background-color: #fff8f8;
+}
+
+.endereco-card.ativo:hover {
+  border-color: #f87171;
+}
+
+/* --- Seletor Checkbox/Radio de Endereço --- */
+.endereco-checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.endereco-radio-circle {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  background-color: #ffffff;
+}
+
+.endereco-radio-circle.active {
+  border-color: #dc2626;
+  background-color: #ffffff;
+}
+
+.endereco-radio-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #dc2626;
+  display: block;
+  animation: scaleIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes scaleIn {
+  0% {
+    transform: scale(0);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.endereco-info {
+  flex: 1;
 }
 
 .endereco-titulo-wrapper {
@@ -156,7 +219,7 @@
   font-size: 1rem;
 }
 
-.badge-principal {
+.badge-ativo {
   background-color: #fef2f2;
   color: #dc2626;
   font-size: 0.7rem;
