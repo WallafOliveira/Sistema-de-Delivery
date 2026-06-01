@@ -1,6 +1,7 @@
 import React from 'react';
-import { Routes, Route, Link, useLocation } from 'react-router-dom';
+import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import './App.css';
+import { logout } from './utils/auth';
 
 // Importando os componentes exatamente com as pastas que você criou
 import Home from './Home/home';
@@ -14,8 +15,8 @@ import Loja from './Loja/loja';
 import Login from './Login/login';
 
 function App() {
-  // O useLocation substitui o useState para saber qual menu deve ficar "ativo" com base na URL
   const location = useLocation();
+  const navigate = useNavigate();
   const isLoginPage = location.pathname === '/login';
 
   // Trocamos 'id' por 'path' (o caminho real da URL)
@@ -55,9 +56,13 @@ function App() {
           </nav>
 
           <div className="sidebar-footer">
-            <Link to="/login" className="menu-item logout" style={{ width: '100%', textDecoration: 'none' }}>
+            <button
+              className="menu-item logout"
+              style={{ width: '100%', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
+              onClick={() => { logout(); navigate('/login'); }}
+            >
               <span className="icon">🚪</span> Sair da conta
-            </Link>
+            </button>
           </div>
         </aside>
       )}

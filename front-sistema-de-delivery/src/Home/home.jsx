@@ -1,19 +1,51 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Importe o hook
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './home.css';
 import { todasLojas } from '../data/lojas';
+import RestauranteService from '../services/restaurante.service';
 
 const Home = () => {
-  const navigate = useNavigate(); // Inicialize o hook
+  const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [searchQuery, setSearchQuery] = useState('');
   const [onlyFreeDelivery, setOnlyFreeDelivery] = useState(false);
+  const [restaurantes, setRestaurantes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [apiDisponivel, setApiDisponivel] = useState(true);
 
   // Estados para Favoritos
   const [favoritos, setFavoritos] = useState(() => {
     const saved = localStorage.getItem('favoritos_restaurantes');
     return saved ? JSON.parse(saved) : [];
   });
+
+  useEffect(() => {
+    async function carregarRestaurantes() {
+      try {
+        const data = await RestauranteService.listarAbertos();
+        // Mescla campos da API com metadados visuais (categoria, nota, tempo, frete, img)
+        const lojasMock = todasLojas;
+        const comMetadados = data.map((r, index) => ({
+          ...r,
+          // Tenta casar com os dados mockados pelo índice circular para visual consistente
+          categoria: lojasMock[index % lojasMock.length]?.categoria ?? 'Lanches',
+          nota: lojasMock[index % lojasMock.length]?.nota ?? '4.5',
+          tempo: lojasMock[index % lojasMock.length]?.tempo ?? '30-45 min',
+          frete: lojasMock[index % lojasMock.length]?.frete ?? 'R$ 3,99',
+          img: lojasMock[index % lojasMock.length]?.img ?? '🍽️',
+        }));
+        setRestaurantes(comMetadados);
+        setApiDisponivel(true);
+      } catch {
+        // Fallback: usa dados mockados locais se API estiver offline
+        setRestaurantes(todasLojas);
+        setApiDisponivel(false);
+      } finally {
+        setLoading(false);
+      }
+    }
+    carregarRestaurantes();
+  }, []);
 
   const toggleFavorito = (id) => {
     let novosFavoritos;
@@ -37,16 +69,15 @@ const Home = () => {
     { id: 'Saudável', nome: 'Saudável', emoji: '🥗', color: 'rgba(34, 197, 94, 0.1)' },
     { id: 'Bebidas', nome: 'Bebidas', emoji: '🥤', color: 'rgba(168, 85, 247, 0.1)' },
   ];
-  
+
   // Filtragem de lojas com base na categoria selecionada, texto de pesquisa e frete grátis
-  const lojasFiltradas = todasLojas.filter(loja => {
+  const lojasFiltradas = restaurantes.filter(loja => {
     const matchesCategory = selectedCategory === 'Todos' || loja.categoria === selectedCategory;
     const matchesSearch = loja.nome.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFreeDelivery = !onlyFreeDelivery || loja.frete === 'Grátis';
     return matchesCategory && matchesSearch && matchesFreeDelivery;
   });
 
-  // Função que será chamada ao clicar no card da loja
   const abrirLoja = (idDaLoja) => {
     navigate(`/loja/${idDaLoja}`);
   };
@@ -59,7 +90,24 @@ const Home = () => {
         <p>Escolha o seu restaurante favorito</p>
       </header>
 
+      {/* Banner de modo offline */}
+      {!apiDisponivel && (
+        <div className="offline-banner">
+          ⚠️ API offline — exibindo restaurantes de demonstração
+        </div>
+      )}
+
+      {/* Loading state */}
+      {loading && (
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Carregando restaurantes...</p>
+        </div>
+      )}
+
       {/* Barra de Pesquisa */}
+      {!loading && (
+      <>
       <div className="search-bar-container">
         <div className="search-input-wrapper">
           <span className="search-icon">🔍</span>
@@ -150,6 +198,7 @@ const Home = () => {
           <p>Não encontramos lojas na categoria {selectedCategory} no momento.</p>
         </div>
       )}
+      </> )} {/* fecha !loading */}
     </div>
   );
 };

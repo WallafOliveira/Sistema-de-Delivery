@@ -1,25 +1,62 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './login.css';
+import UsuarioService from '../services/usuario.service';
+import { salvarUsuario } from '../utils/auth';
 
 const Login = () => {
   const navigate = useNavigate();
-  const [isLogin, setIsLogin] = useState(true); // Alterna entre login e cadastro
+  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [nome, setNome] = useState('');
   const [telefone, setTelefone] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email || !senha || (!isLogin && !nome)) {
       setError('Por favor, preencha todos os campos obrigatórios.');
       return;
     }
+    if (!isLogin && senha.length < 6) {
+      setError('A senha deve ter pelo menos 6 caracteres.');
+      return;
+    }
     setError('');
-    // Simula a autenticação e redireciona para a home '/'
-    navigate('/');
+    setLoading(true);
+
+    try {
+      if (isLogin) {
+        // Login: busca lista de usuários e filtra por e-mail
+        const usuarios = await UsuarioService.listarTodos();
+        const usuario = usuarios.find(
+          (u) => u.email.toLowerCase() === email.toLowerCase()
+        );
+        if (!usuario) {
+          setError('E-mail não cadastrado. Crie uma conta primeiro.');
+          return;
+        }
+        salvarUsuario(usuario);
+        navigate('/');
+      } else {
+        // Cadastro: cria novo usuário na API
+        const novoUsuario = await UsuarioService.criar({
+          nome,
+          email,
+          telefone: telefone || '(00) 00000-0000',
+          tipo: 'Cliente',
+          senha,
+        });
+        salvarUsuario(novoUsuario);
+        navigate('/');
+      }
+    } catch (err) {
+      setError(err.message || 'Ocorreu um erro. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -141,8 +178,8 @@ const Login = () => {
                 </div>
               )}
 
-              <button type="submit" className="login-submit-btn">
-                {isLogin ? 'Entrar' : 'Cadastrar'}
+              <button type="submit" className="login-submit-btn" disabled={loading}>
+                {loading ? 'Aguarde...' : (isLogin ? 'Entrar' : 'Cadastrar')}
               </button>
             </form>
 

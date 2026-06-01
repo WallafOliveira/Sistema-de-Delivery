@@ -1,20 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './perfil.css';
+import UsuarioService from '../services/usuario.service';
+import { getUsuario, salvarUsuario } from '../utils/auth';
 
 const Perfil = () => {
   const [isEditarDadosOpen, setIsEditarDadosOpen] = useState(false);
   const [isNovoEnderecoOpen, setIsNovoEnderecoOpen] = useState(false);
+  const [salvando, setSalvando] = useState(false);
+  const [erroSalvar, setErroSalvar] = useState('');
 
-  // Dados simulados do usuário para demonstração
   const [usuario, setUsuario] = useState(() => {
-    const saved = localStorage.getItem('perfil_usuario');
-    return saved ? JSON.parse(saved) : {
-      nome: 'João da Silva',
-      email: 'joao.silva@email.com',
-      telefone: '(11) 98765-4321',
-      membroDesde: 'Janeiro de 2026',
+    const u = getUsuario();
+    return {
+      id: u?.id ?? null,
+      nome: u?.nome ?? 'Usuário',
+      email: u?.email ?? '',
+      telefone: u?.telefone ?? '',
+      membroDesde: 'Membro',
     };
   });
+
+  // Sincroniza com a API ao montar
+  useEffect(() => {
+    const u = getUsuario();
+    if (!u?.id) return;
+    UsuarioService.buscarPorId(u.id)
+      .then((dados) => {
+        const atualizado = {
+          id: dados.id,
+          nome: dados.nome,
+          email: dados.email,
+          telefone: dados.telefone ?? '',
+          membroDesde: 'Membro',
+        };
+        setUsuario(atualizado);
+      })
+      .catch(() => { /* mantém dados do localStorage */ });
+  }, []);
 
   // Dados simulados de endereços com localStorage
   const [listaEnderecos, setListaEnderecos] = useState(() => {
@@ -145,18 +167,28 @@ const Perfil = () => {
               <h3>Editar Dados</h3>
               <button className="btn-close" onClick={() => setIsEditarDadosOpen(false)}>&times;</button>
             </div>
-            <form onSubmit={(e) => { 
-              e.preventDefault(); 
+            <form onSubmit={async (e) => { 
+              e.preventDefault();
+              setErroSalvar('');
               const formData = new FormData(e.currentTarget);
               const novosDados = {
-                ...usuario,
                 nome: formData.get('nome'),
                 email: formData.get('email'),
-                telefone: formData.get('telefone')
+                telefone: formData.get('telefone'),
+                tipo: getUsuario()?.tipo ?? 'Cliente',
               };
-              setUsuario(novosDados);
-              localStorage.setItem('perfil_usuario', JSON.stringify(novosDados));
-              setIsEditarDadosOpen(false); 
+              setSalvando(true);
+              try {
+                const atualizado = await UsuarioService.atualizar(usuario.id, novosDados);
+                const novoEstado = { ...usuario, nome: atualizado.nome, email: atualizado.email, telefone: atualizado.telefone };
+                setUsuario(novoEstado);
+                salvarUsuario(atualizado);
+                setIsEditarDadosOpen(false);
+              } catch {
+                setErroSalvar('Erro ao salvar. Tente novamente.');
+              } finally {
+                setSalvando(false);
+              }
             }}>
               <div className="form-group">
                 <label>Nome</label>
@@ -172,8 +204,11 @@ const Perfil = () => {
               </div>
               <div className="modal-actions">
                 <button type="button" className="btn-outline" onClick={() => setIsEditarDadosOpen(false)}>Cancelar</button>
-                <button type="submit" className="btn-primary">Salvar</button>
+                <button type="submit" className="btn-primary" disabled={salvando}>
+                  {salvando ? 'Salvando...' : 'Salvar'}
+                </button>
               </div>
+              {erroSalvar && <p style={{ color: '#dc2626', fontSize: '0.85rem', marginTop: '0.5rem' }}>{erroSalvar}</p>}
             </form>
           </div>
         </div>

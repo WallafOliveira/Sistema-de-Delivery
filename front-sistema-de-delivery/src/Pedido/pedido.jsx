@@ -1,79 +1,86 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './pedido.css';
+import PedidoService from '../services/pedido.service';
+import RestauranteService from '../services/restaurante.service';
+import { getUsuario } from '../utils/auth';
+import { formatarData, statusInfo } from '../utils/formatters';
+
+/** Converte um PedidoDTO da API para o formato esperado pela UI */
+function apiParaUIPedido(pedidoApi, restaurantesMap) {
+  const info = statusInfo(pedidoApi.status);
+  const restaurante = restaurantesMap[pedidoApi.restauranteId];
+  return {
+    id: pedidoApi.id,
+    _idCurto: pedidoApi.id.substring(0, 8).toUpperCase(),
+    loja: restaurante?.nome ?? 'Restaurante',
+    emoji: '🍽️',
+    data: formatarData(pedidoApi.dataCriacao),
+    status: info.label,
+    statusApi: pedidoApi.status,
+    itens: (pedidoApi.itens ?? []).map((i) => ({
+      nome: i.nomeProduto,
+      qtd: i.quantidade,
+      preco: i.valorUnitario,
+    })),
+    total: pedidoApi.valorTotal,
+    pagamento: 'Pagamento na entrega',
+    endereco: '(consulte o restaurante)',
+    previsao: '30-45 min',
+    etapa: info.etapa,
+  };
+}
 
 const Pedido = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const pedidoConfirmado = location.state?.pedidoConfirmado;
-  const pedidoConfirmadoData = location.state?.pedido;
+  const pedidoConfirmadoId = location.state?.pedidoId;
 
-  // Simulando dados de pedidos com histórico e um pedido ativo
-  const [pedidos, setPedidos] = useState([
-    {
-      id: '8492',
-      loja: 'Burger House',
-      emoji: '🍔',
-      data: 'Hoje, 20:01',
-      status: 'Preparando', // Status possíveis: 'Confirmado' | 'Preparando' | 'A caminho' | 'Entregue' | 'Cancelado'
-      itens: [
-        { nome: 'Monster Burger Mega', qtd: 1, preco: 32.90 },
-        { nome: 'Batata Rústica Grande', qtd: 1, preco: 11.00 },
-        { nome: 'Coca-Cola Zero Caneca', qtd: 1, preco: 5.00 }
-      ],
-      total: 48.90,
-      pagamento: 'Cartão de Crédito (Final 4821)',
-      endereco: 'Rua das Flores, 123 - Centro, São Paulo - SP',
-      previsao: '20:30 - 20:45',
-      etapa: 2 // 1: Confirmado, 2: Preparando, 3: A caminho, 4: Entregue
-    },
-    {
-      id: '3920',
-      loja: 'Bella Pizza',
-      emoji: '🍕',
-      data: '15 de Maio de 2026, 21:15',
-      status: 'Entregue',
-      itens: [
-        { nome: 'Pizza Grande Meio Calabresa / Meio 4 Queijos', qtd: 1, preco: 54.00 },
-        { nome: 'Guaraná Antarctica 2L', qtd: 1, preco: 10.00 }
-      ],
-      total: 64.00,
-      pagamento: 'PIX',
-      endereco: 'Rua das Flores, 123 - Centro, São Paulo - SP',
-      etapa: 4
-    },
-    {
-      id: '1092',
-      loja: 'Sushi Hakura',
-      emoji: '🍣',
-      data: '12 de Maio de 2026, 19:30',
-      status: 'Entregue',
-      itens: [
-        { nome: 'Combo Premium Hot Holl & Niguiri (24 peças)', qtd: 1, preco: 74.90 },
-        { nome: 'Temaki Salmão Grelhado', qtd: 1, preco: 15.00 }
-      ],
-      total: 89.90,
-      pagamento: 'Cartão de Débito',
-      endereco: 'Rua das Flores, 123 - Centro, São Paulo - SP',
-      etapa: 4
-    },
-    {
-      id: '0981',
-      loja: 'Doce Sonho Confeitaria',
-      emoji: '🍰',
-      data: '08 de Maio de 2026, 15:45',
-      status: 'Cancelado',
-      itens: [
-        { nome: 'Fatia de Bolo Vulcão Ninho com Nutella', qtd: 2, preco: 28.00 },
-        { nome: 'Milkshake Ovomaltine 500ml', qtd: 1, preco: 10.00 }
-      ],
-      total: 38.00,
-      pagamento: 'Cartão de Crédito',
-      endereco: 'Rua das Flores, 123 - Centro, São Paulo - SP',
-      etapa: 0
+  const [pedidos, setPedidos] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  const [restaurantesMap, setRestaurantesMap] = useState({});
+
+  // Carrega e mapeia pedidos da API
+  const carregarPedidos = useCallback(async (mapa) => {
+    const usuario = getUsuario();
+    if (!usuario?.id) { setCarregando(false); return; }
+    try {
+      const lista = await PedidoService.listarPorCliente(usuario.id);
+      const mapaAtual = mapa ?? restaurantesMap;
+      const mapeados = (lista ?? []).map((p) => apiParaUIPedido(p, mapaAtual));
+      setPedidos(mapeados);
+    } catch {
+      // mantém lista vazia — sem quebrar a UI
+    } finally {
+      setCarregando(false);
     }
-  ]);
+  }, [restaurantesMap]);
+
+  // Carga inicial: restaurantes + pedidos
+  useEffect(() => {
+    async function inicializar() {
+      let mapa = {};
+      try {
+        const rests = await RestauranteService.listarTodos();
+        rests.forEach((r) => { mapa[r.id] = r; });
+        setRestaurantesMap(mapa);
+      } catch { /* ignora */ }
+      await carregarPedidos(mapa);
+    }
+    inicializar();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Polling 30s para pedidos em andamento
+  useEffect(() => {
+    const temAtivo = pedidos.some(
+      (p) => !['Entregue', 'Cancelado'].includes(p.statusApi)
+    );
+    if (!temAtivo) return;
+    const interval = setInterval(() => carregarPedidos(), 30000);
+    return () => clearInterval(interval);
+  }, [pedidos, carregarPedidos]);
 
   // Estados para Modal de Cancelamento
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
@@ -182,10 +189,13 @@ const Pedido = () => {
   };
 
   // Confirma o cancelamento do pedido ativo
-  const confirmarCancelamento = () => {
+  const confirmarCancelamento = async () => {
+    try {
+      await PedidoService.cancelar(pedidoParaCancelar);
+    } catch { /* ignora se já cancelado */ }
     setPedidos(pedidos.map(p => {
       if (p.id === pedidoParaCancelar) {
-        return { ...p, status: 'Cancelado', etapa: 0 };
+        return { ...p, status: 'Cancelado', statusApi: 'Cancelado', etapa: 0 };
       }
       return p;
     }));
@@ -224,8 +234,18 @@ const Pedido = () => {
     }, 4000);
   };
 
-  const pedidosEmAndamento = pedidos.filter(p => p.status !== 'Entregue' && p.status !== 'Cancelado');
-  const historicoPedidos = pedidos.filter(p => p.status === 'Entregue' || p.status === 'Cancelado');
+  const pedidosEmAndamento = pedidos.filter(p => p.statusApi !== 'Entregue' && p.statusApi !== 'Cancelado');
+  const historicoPedidos = pedidos.filter(p => p.statusApi === 'Entregue' || p.statusApi === 'Cancelado');
+
+  if (carregando) {
+    return (
+      <div className="pedidos-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '4rem', gap: '1rem', color: '#6b7280' }}>
+        <div style={{ width: 40, height: 40, border: '4px solid #fee2e2', borderTopColor: '#dc2626', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}></div>
+        <p>Carregando pedidos...</p>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -243,24 +263,15 @@ const Pedido = () => {
           </div>
         )}
 
-        {pedidoConfirmado && pedidoConfirmadoData && (
+        {pedidoConfirmado && (
           <div className="pedido-confirmacao-card">
-            <div className="pedido-confirmacao-header">Pedido finalizado com sucesso!</div>
-            <p>Seu pedido #{pedidoConfirmadoData.id} foi confirmado e está em processamento.</p>
-            <div className="pedido-confirmacao-detalhes">
-              <span>
-                <strong>Total</strong>
-                <strong>R$ {pedidoConfirmadoData.total.toFixed(2).replace('.', ',')}</strong>
-              </span>
-              <span>
-                <strong>Data</strong>
-                <strong>{pedidoConfirmadoData.data}</strong>
-              </span>
-              <span>
-                <strong>Status</strong>
-                <strong>{pedidoConfirmadoData.status}</strong>
-              </span>
-            </div>
+            <div className="pedido-confirmacao-header">Pedido finalizado com sucesso! 🎉</div>
+            <p>Seu pedido foi confirmado e está sendo processado pelo restaurante.</p>
+            {pedidoConfirmadoId && (
+              <p style={{ fontSize: '0.85rem', color: '#6b7280' }}>
+                ID: {pedidoConfirmadoId.substring(0, 8).toUpperCase()}
+              </p>
+            )}
             <button className="btn-primary-sm" onClick={() => navigate('/')}>Continuar comprando</button>
           </div>
         )}
@@ -280,7 +291,7 @@ const Pedido = () => {
                     <span className="loja-emoji-circle">{pedido.emoji}</span>
                     <div>
                       <h4>{pedido.loja}</h4>
-                      <span className="pedido-id-text">Pedido #{pedido.id} • {pedido.data}</span>
+                      <span className="pedido-id-text">Pedido #{pedido._idCurto} • {pedido.data}</span>
                     </div>
                   </div>
                   <div className="pedido-status-badge status-preparando">
