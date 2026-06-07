@@ -1,25 +1,47 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './login.css';
+import { login as apiLogin, cadastrar as apiCadastrar } from '../api/usuario';
+import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
-  const [isLogin, setIsLogin] = useState(true); // Alterna entre login e cadastro
+  const { salvarUsuario } = useAuth();
+  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [nome, setNome] = useState('');
   const [telefone, setTelefone] = useState('');
+  const [tipo, setTipo] = useState('cliente');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email || !senha || (!isLogin && !nome)) {
       setError('Por favor, preencha todos os campos obrigatórios.');
       return;
     }
     setError('');
-    // Simula a autenticação e redireciona para a home '/'
-    navigate('/');
+    setLoading(true);
+
+    try {
+      if (isLogin) {
+        const { data } = await apiLogin(email, senha);
+        salvarUsuario(data);
+        navigate('/');
+      } else {
+        await apiCadastrar({ nome, email, telefone, tipo, senha });
+        const { data } = await apiLogin(email, senha);
+        salvarUsuario(data);
+        navigate('/');
+      }
+    } catch (err) {
+      const msg = err.response?.data?.message || err.response?.data || 'Erro ao conectar com o servidor.';
+      setError(typeof msg === 'string' ? msg : 'Credenciais inválidas.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -29,7 +51,7 @@ const Login = () => {
         <div className="bg-shape shape2"></div>
         <div className="bg-shape shape3"></div>
       </div>
-      
+
       <div className="login-container animate-fade-in">
         <div className="login-brand-side">
           <div className="brand-overlay"></div>
@@ -71,13 +93,13 @@ const Login = () => {
                   <label htmlFor="nome">Nome Completo</label>
                   <div className="input-wrapper">
                     <span className="input-icon">👤</span>
-                    <input 
-                      type="text" 
-                      id="nome" 
-                      placeholder="Ex: João da Silva" 
+                    <input
+                      type="text"
+                      id="nome"
+                      placeholder="Ex: João da Silva"
                       value={nome}
                       onChange={(e) => setNome(e.target.value)}
-                      required 
+                      required
                     />
                   </div>
                 </div>
@@ -87,44 +109,62 @@ const Login = () => {
                 <label htmlFor="email">E-mail</label>
                 <div className="input-wrapper">
                   <span className="input-icon">✉️</span>
-                  <input 
-                    type="email" 
-                    id="email" 
-                    placeholder="exemplo@email.com" 
+                  <input
+                    type="email"
+                    id="email"
+                    placeholder="exemplo@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    required 
+                    required
                   />
                 </div>
               </div>
 
               {!isLogin && (
-                <div className="login-input-group">
-                  <label htmlFor="telefone">Telefone (Opcional)</label>
-                  <div className="input-wrapper">
-                    <span className="input-icon">📞</span>
-                    <input 
-                      type="tel" 
-                      id="telefone" 
-                      placeholder="(11) 99999-9999" 
-                      value={telefone}
-                      onChange={(e) => setTelefone(e.target.value)}
-                    />
+                <>
+                  <div className="login-input-group">
+                    <label htmlFor="telefone">Telefone (Opcional)</label>
+                    <div className="input-wrapper">
+                      <span className="input-icon">📞</span>
+                      <input
+                        type="tel"
+                        id="telefone"
+                        placeholder="(11) 99999-9999"
+                        value={telefone}
+                        onChange={(e) => setTelefone(e.target.value)}
+                      />
+                    </div>
                   </div>
-                </div>
+
+                  <div className="login-input-group">
+                    <label htmlFor="tipo">Tipo de conta</label>
+                    <div className="input-wrapper">
+                      <span className="input-icon">🏷️</span>
+                      <select
+                        id="tipo"
+                        value={tipo}
+                        onChange={(e) => setTipo(e.target.value)}
+                        style={{ width: '100%', border: 'none', background: 'transparent', outline: 'none', fontSize: '1rem' }}
+                      >
+                        <option value="cliente">Cliente</option>
+                        <option value="restaurante">Restaurante</option>
+                      </select>
+                    </div>
+                  </div>
+                </>
               )}
 
               <div className="login-input-group">
                 <label htmlFor="senha">Senha</label>
                 <div className="input-wrapper">
                   <span className="input-icon">🔒</span>
-                  <input 
-                    type="password" 
-                    id="senha" 
-                    placeholder="Digite sua senha" 
+                  <input
+                    type="password"
+                    id="senha"
+                    placeholder="Digite sua senha"
                     value={senha}
                     onChange={(e) => setSenha(e.target.value)}
-                    required 
+                    required
                   />
                 </div>
               </div>
@@ -141,8 +181,8 @@ const Login = () => {
                 </div>
               )}
 
-              <button type="submit" className="login-submit-btn">
-                {isLogin ? 'Entrar' : 'Cadastrar'}
+              <button type="submit" className="login-submit-btn" disabled={loading}>
+                {loading ? 'Aguarde...' : isLogin ? 'Entrar' : 'Cadastrar'}
               </button>
             </form>
 

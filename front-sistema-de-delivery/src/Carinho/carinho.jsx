@@ -1,104 +1,52 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './carinho.css';
+import { useCarrinho } from '../context/CarrinhoContext';
+import { useAuth } from '../context/AuthContext';
+import { criarPedido } from '../api/pedido';
 
 const Carrinho = () => {
   const navigate = useNavigate();
-  const [itens, setItens] = useState([
-    {
-      id: 1,
-      nome: 'X-Burger Especial',
-      descricao: 'Hambúrguer premium, queijo cheddar, bacon e molho especial.',
-      preco: 35.0,
-      quantidade: 1,
-    },
-    {
-      id: 2,
-      nome: 'Pizza Calabresa',
-      descricao: 'Massa fina, molho de tomate fresco e calabresa fatiada.',
-      preco: 55.0,
-      quantidade: 2,
-    },
-    {
-      id: 3,
-      nome: 'Refrigerante Lata',
-      descricao: 'Refrigerante gelado 350ml.',
-      preco: 7.0,
-      quantidade: 1,
-    },
-  ]);
-
-  const alterarQuantidade = (id, delta) => {
-    setItens((prevItens) =>
-      prevItens
-        .map((item) => {
-          if (item.id !== id) return item;
-          return {
-            ...item,
-            quantidade: Math.max(1, item.quantidade + delta),
-          };
-        })
-        .filter((item) => item.quantidade > 0)
-    );
-  };
-
-  const removerItem = (id) => {
-    setItens((prevItens) => prevItens.filter((item) => item.id !== id));
-  };
+  const { usuario } = useAuth();
+  const { restauranteId, itens, alterarQuantidade, removerItem, limparCarrinho } = useCarrinho();
 
   const [showCheckout, setShowCheckout] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+  const [erro, setErro] = useState('');
 
-  const [clienteInfo, setClienteInfo] = useState({
-    nome: 'João da Silva',
-    email: 'joao.silva@email.com',
-    telefone: '(11) 98765-4321',
-  });
-
-  const [enderecosSalvos] = useState([
-    { id: 1, label: 'Casa', endereco: 'Rua das Flores, 123 - Centro, São Paulo - SP' },
-    { id: 2, label: 'Trabalho', endereco: 'Av. Paulista, 1000 - Bela Vista, São Paulo - SP' },
-    { id: 3, label: 'Avó', endereco: 'Rua das Cerejeiras, 45 - Jardim, São Paulo - SP' },
-  ]);
-
-  const [selectedAddressId, setSelectedAddressId] = useState(1);
-  const [enderecoTexto, setEnderecoTexto] = useState(enderecosSalvos[0].endereco);
-  const [pagamento] = useState('Cartão de Crédito (Final 4821)');
-
-  const subtotal = itens.reduce((acc, item) => acc + item.preco * item.quantidade, 0);
+  const subtotal = itens.reduce((acc, item) => acc + item.valorUnitario * item.quantidade, 0);
   const entrega = itens.length > 0 ? 8.9 : 0;
   const total = subtotal + entrega;
 
-  const abrirConfirmacao = () => {
-    const selectedAddress = enderecosSalvos.find((item) => item.id === selectedAddressId);
-    if (selectedAddress && selectedAddress.endereco !== enderecoTexto) {
-      setEnderecoTexto(selectedAddress.endereco);
+  const confirmarPedido = async () => {
+    if (!usuario) {
+      navigate('/login');
+      return;
     }
-    setShowCheckout(true);
-  };
 
-  const confirmarPedido = () => {
-    const pedido = {
-      id: Date.now(),
-      itens,
-      subtotal,
-      entrega,
-      total,
-      cliente: clienteInfo,
-      endereco: enderecoTexto,
-      pagamento,
-      data: new Date().toLocaleString('pt-BR', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
-      status: 'Pedido confirmado',
-    };
+    setEnviando(true);
+    setErro('');
 
-    setItens([]);
-    setShowCheckout(false);
-    navigate('/pedido', { state: { pedidoConfirmado: true, pedido } });
+    try {
+      await criarPedido({
+        clienteId: usuario.id,
+        restauranteId,
+        itens: itens.map((i) => ({
+          produtoId: i.produtoId,
+          nomeProduto: i.nomeProduto,
+          quantidade: i.quantidade,
+          valorUnitario: i.valorUnitario,
+        })),
+      });
+
+      limparCarrinho();
+      setShowCheckout(false);
+      navigate('/pedido', { state: { pedidoConfirmado: true } });
+    } catch (err) {
+      setErro('Erro ao enviar o pedido. Tente novamente.');
+    } finally {
+      setEnviando(false);
+    }
   };
 
   if (showCheckout) {
@@ -107,76 +55,26 @@ const Carrinho = () => {
         <header className="carrinho-header">
           <div>
             <h2>Confirmar Pedido</h2>
-            <p>Confira seus dados antes de enviar o pedido.</p>
+            <p>Confira seus itens antes de enviar.</p>
           </div>
           <span className="badge-carrinho">{itens.length} {itens.length === 1 ? 'item' : 'itens'}</span>
         </header>
 
         <div className="confirmacao-grid">
-            <section className="confirmacao-card">
-            <h3>Dados de entrega</h3>
-            <div className="endereco-salvo-section">
-              <label className="confirmacao-label" htmlFor="endereco-salvo-select">Endereço salvo</label>
-              <select
-                id="endereco-salvo-select"
-                className="endereco-select"
-                value={selectedAddressId}
-                onChange={(e) => {
-                  const id = Number(e.target.value);
-                  setSelectedAddressId(id);
-                  const selected = enderecosSalvos.find((item) => item.id === id);
-                  if (selected) {
-                    setEnderecoTexto(selected.endereco);
-                  }
-                }}
-              >
-                {enderecosSalvos.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.label} - {item.endereco}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <p className="confirmacao-label">Endereço de entrega</p>
-            <textarea
-              rows={3}
-              className="confirmacao-textarea"
-              value={enderecoTexto}
-              onChange={(e) => setEnderecoTexto(e.target.value)}
-            />
-
+          <section className="confirmacao-card">
             <h3>Dados do cliente</h3>
-            <p className="confirmacao-label">Nome</p>
-            <input
-              type="text"
-              value={clienteInfo.nome}
-              onChange={(e) => setClienteInfo({ ...clienteInfo, nome: e.target.value })}
-            />
-            <p className="confirmacao-label">Email</p>
-            <input
-              type="email"
-              value={clienteInfo.email}
-              onChange={(e) => setClienteInfo({ ...clienteInfo, email: e.target.value })}
-            />
-            <p className="confirmacao-label">Telefone</p>
-            <input
-              type="text"
-              value={clienteInfo.telefone}
-              onChange={(e) => setClienteInfo({ ...clienteInfo, telefone: e.target.value })}
-            />
-
-            <h3>Forma de pagamento</h3>
-            <p>{pagamento}</p>
+            <p><strong>Nome:</strong> {usuario?.nome || '—'}</p>
+            <p><strong>E-mail:</strong> {usuario?.email || '—'}</p>
+            <p><strong>Telefone:</strong> {usuario?.telefone || '—'}</p>
           </section>
 
           <aside className="confirmacao-resumo">
             <div className="resumo-box">
               <h3>Resumo do pedido</h3>
               {itens.map((item) => (
-                <div key={item.id} className="confirmacao-item-row">
-                  <span>{item.quantidade}x {item.nome}</span>
-                  <strong>R$ {(item.preco * item.quantidade).toFixed(2)}</strong>
+                <div key={item.produtoId} className="confirmacao-item-row">
+                  <span>{item.quantidade}x {item.nomeProduto}</span>
+                  <strong>R$ {(item.valorUnitario * item.quantidade).toFixed(2)}</strong>
                 </div>
               ))}
               <div className="resumo-linha">
@@ -191,9 +89,12 @@ const Carrinho = () => {
                 <span>Total</span>
                 <strong>R$ {total.toFixed(2)}</strong>
               </div>
+              {erro && <p style={{ color: 'red', fontSize: '0.875rem' }}>{erro}</p>}
               <div className="confirmacao-actions">
                 <button className="btn-outline" onClick={() => setShowCheckout(false)}>Voltar ao carrinho</button>
-                <button className="btn-primary" onClick={confirmarPedido}>Confirmar e enviar pedido</button>
+                <button className="btn-primary" onClick={confirmarPedido} disabled={enviando}>
+                  {enviando ? 'Enviando...' : 'Confirmar e enviar pedido'}
+                </button>
               </div>
             </div>
           </aside>
@@ -221,23 +122,22 @@ const Carrinho = () => {
         <div className="carrinho-grid">
           <section className="itens-lista">
             {itens.map((item) => (
-              <div key={item.id} className="item-card">
+              <div key={item.produtoId} className="item-card">
                 <div className="item-card-info">
-                  <div className="item-img-mini">Foto</div>
+                  <div className="item-img-mini">🍽️</div>
                   <div>
-                    <h3>{item.nome}</h3>
-                    <p>{item.descricao}</p>
-                    <span className="item-preco">R$ {item.preco.toFixed(2)}</span>
+                    <h3>{item.nomeProduto}</h3>
+                    <span className="item-preco">R$ {Number(item.valorUnitario).toFixed(2)}</span>
                   </div>
                 </div>
 
                 <div className="item-card-actions">
                   <div className="quantidade-control">
-                    <button onClick={() => alterarQuantidade(item.id, -1)}>-</button>
+                    <button onClick={() => alterarQuantidade(item.produtoId, -1)}>-</button>
                     <span>{item.quantidade}</span>
-                    <button onClick={() => alterarQuantidade(item.id, 1)}>+</button>
+                    <button onClick={() => alterarQuantidade(item.produtoId, 1)}>+</button>
                   </div>
-                  <button className="btn-remover" onClick={() => removerItem(item.id)}>
+                  <button className="btn-remover" onClick={() => removerItem(item.produtoId)}>
                     Remover
                   </button>
                 </div>
@@ -260,7 +160,9 @@ const Carrinho = () => {
                 <span>Total</span>
                 <strong>R$ {total.toFixed(2)}</strong>
               </div>
-              <button className="btn-primary btn-finalizar" onClick={abrirConfirmacao}>Finalizar Pedido</button>
+              <button className="btn-primary btn-finalizar" onClick={() => setShowCheckout(true)}>
+                Finalizar Pedido
+              </button>
             </div>
           </aside>
         </div>

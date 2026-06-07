@@ -1,6 +1,8 @@
 import React from 'react';
-import { Routes, Route, Link, useLocation } from 'react-router-dom';
+import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import './App.css';
+import { useAuth } from './context/AuthContext';
+import { useCarrinho } from './context/CarrinhoContext';
 
 // Importando os componentes exatamente com as pastas que você criou
 import Home from './Home/home';
@@ -14,16 +16,22 @@ import Loja from './Loja/loja';
 import Login from './Login/login';
 
 function App() {
-  // O useLocation substitui o useState para saber qual menu deve ficar "ativo" com base na URL
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+  const { totalItens } = useCarrinho();
   const isLoginPage = location.pathname === '/login';
 
-  // Trocamos 'id' por 'path' (o caminho real da URL)
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   const menuItems = [
     { path: '/', name: 'Início (Lojas)', icon: '🏠' },
     { path: '/favoritos', name: 'Meus Favoritos', icon: '❤️' },
     { path: '/pedido', name: 'Meus Pedidos', icon: '🧾' },
-    { path: '/carrinho', name: 'Carrinho', icon: '🛒' },
+    { path: '/carrinho', name: `Carrinho${totalItens > 0 ? ` (${totalItens})` : ''}`, icon: '🛒' },
     { path: '/perfil', name: 'Perfil', icon: '👤' },
   ];
 
@@ -55,9 +63,9 @@ function App() {
           </nav>
 
           <div className="sidebar-footer">
-            <Link to="/login" className="menu-item logout" style={{ width: '100%', textDecoration: 'none' }}>
+            <button className="menu-item logout" style={{ width: '100%', background: 'none', border: 'none', cursor: 'pointer' }} onClick={handleLogout}>
               <span className="icon">🚪</span> Sair da conta
-            </Link>
+            </button>
           </div>
         </aside>
       )}
