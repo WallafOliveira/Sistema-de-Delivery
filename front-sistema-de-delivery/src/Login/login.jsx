@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './login.css';
 import { login as apiLogin, cadastrar as apiCadastrar } from '../api/usuario';
+import { criarRestaurante } from '../api/restaurante';
 import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
@@ -13,12 +14,26 @@ const Login = () => {
   const [nome, setNome] = useState('');
   const [telefone, setTelefone] = useState('');
   const [tipo, setTipo] = useState('cliente');
+  const [nomeRestaurante, setNomeRestaurante] = useState('');
+  const [cnpj, setCnpj] = useState('');
+
+  const handleCnpj = (e) => {
+    const digits = e.target.value.replace(/\D/g, '').slice(0, 14);
+    const masked = digits
+      .replace(/^(\d{2})(\d)/, '$1.$2')
+      .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+      .replace(/\.(\d{3})(\d)/, '.$1/$2')
+      .replace(/(\d{4})(\d)/, '$1-$2');
+    setCnpj(masked);
+  };
+  const [enderecoRestaurante, setEnderecoRestaurante] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email || !senha || (!isLogin && !nome)) {
+    const faltaCampoRestaurante = !isLogin && tipo === 'restaurante' && (!nomeRestaurante || !cnpj || !enderecoRestaurante);
+    if (!email || !senha || (!isLogin && !nome) || faltaCampoRestaurante) {
       setError('Por favor, preencha todos os campos obrigatórios.');
       return;
     }
@@ -29,12 +44,22 @@ const Login = () => {
       if (isLogin) {
         const { data } = await apiLogin(email, senha);
         salvarUsuario(data);
-        navigate('/');
+        navigate(data.tipo === 'restaurante' ? '/restaurante' : '/');
       } else {
-        await apiCadastrar({ nome, email, telefone, tipo, senha });
+        let restauranteId = null;
+        if (tipo === 'restaurante') {
+          const { data: rest } = await criarRestaurante({
+            nome: nomeRestaurante,
+            cpnj: cnpj,
+            endereco: enderecoRestaurante,
+            estaAberto: true,
+          });
+          restauranteId = rest.id;
+        }
+        await apiCadastrar({ nome, email, telefone, tipo, senha, restauranteId });
         const { data } = await apiLogin(email, senha);
         salvarUsuario(data);
-        navigate('/');
+        navigate(data.tipo === 'restaurante' ? '/restaurante' : '/');
       }
     } catch (err) {
       const msg = err.response?.data?.message || err.response?.data || 'Erro ao conectar com o servidor.';
@@ -89,6 +114,30 @@ const Login = () => {
 
             <form onSubmit={handleSubmit} className="login-form-element">
               {!isLogin && (
+                <>
+                  <div className="login-input-group">
+                    <label>Tipo de conta</label>
+                    <div className="tipo-tab-selector">
+                      <button
+                        type="button"
+                        className={`tipo-tab ${tipo === 'cliente' ? 'active' : ''}`}
+                        onClick={() => setTipo('cliente')}
+                      >
+                        <span>👤</span> Cliente
+                      </button>
+                      <button
+                        type="button"
+                        className={`tipo-tab ${tipo === 'restaurante' ? 'active' : ''}`}
+                        onClick={() => setTipo('restaurante')}
+                      >
+                        <span>🍽️</span> Restaurante
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {!isLogin && (
                 <div className="login-input-group">
                   <label htmlFor="nome">Nome Completo</label>
                   <div className="input-wrapper">
@@ -136,21 +185,58 @@ const Login = () => {
                     </div>
                   </div>
 
-                  <div className="login-input-group">
-                    <label htmlFor="tipo">Tipo de conta</label>
-                    <div className="input-wrapper">
-                      <span className="input-icon">🏷️</span>
-                      <select
-                        id="tipo"
-                        value={tipo}
-                        onChange={(e) => setTipo(e.target.value)}
-                        style={{ width: '100%', border: 'none', background: 'transparent', outline: 'none', fontSize: '1rem' }}
-                      >
-                        <option value="cliente">Cliente</option>
-                        <option value="restaurante">Restaurante</option>
-                      </select>
-                    </div>
-                  </div>
+                  {tipo === 'restaurante' && (
+                    <>
+                      <div className="login-section-divider">
+                        <span>Dados do Restaurante</span>
+                      </div>
+
+                      <div className="login-input-group">
+                        <label htmlFor="nomeRestaurante">Nome do Restaurante *</label>
+                        <div className="input-wrapper">
+                          <span className="input-icon">🍽️</span>
+                          <input
+                            type="text"
+                            id="nomeRestaurante"
+                            placeholder="Ex: Pizzaria do João"
+                            value={nomeRestaurante}
+                            onChange={(e) => setNomeRestaurante(e.target.value)}
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="login-input-group">
+                        <label htmlFor="cnpj">CNPJ *</label>
+                        <div className="input-wrapper">
+                          <span className="input-icon">🪪</span>
+                          <input
+                            type="text"
+                            id="cnpj"
+                            placeholder="00.000.000/0001-00"
+                            value={cnpj}
+                            onChange={handleCnpj}
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="login-input-group">
+                        <label htmlFor="enderecoRestaurante">Endereço *</label>
+                        <div className="input-wrapper">
+                          <span className="input-icon">📍</span>
+                          <input
+                            type="text"
+                            id="enderecoRestaurante"
+                            placeholder="Rua, número, bairro, cidade"
+                            value={enderecoRestaurante}
+                            onChange={(e) => setEnderecoRestaurante(e.target.value)}
+                            required
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </>
               )}
 

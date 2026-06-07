@@ -4,54 +4,72 @@ import './App.css';
 import { useAuth } from './context/AuthContext';
 import { useCarrinho } from './context/CarrinhoContext';
 
-// Importando os componentes exatamente com as pastas que você criou
 import Home from './Home/home';
 import Pedido from './Pedido/pedido';
 import Carrinho from './Carinho/carinho';
 import Perfil from './Perfil/perfil';
-import Favoritos from './Favoritos/favoritos';
-
-// Importando a tela da Loja (certifique-se de ter criado esta pasta e arquivo)
-import Loja from './Loja/loja'; 
+import Loja from './Loja/loja';
 import Login from './Login/login';
+import RestauranteHome from './RestauranteHome/restaurante-home';
+import RestauranteCardapio from './RestauranteCardapio/restaurante-cardapio';
+import RestaurantePedidos from './RestaurantePedidos/restaurante-pedidos';
+
+const menuCliente = (totalItens) => [
+  { path: '/', name: 'Início (Lojas)', icon: '🏠' },
+  { path: '/pedido', name: 'Meus Pedidos', icon: '🧾' },
+  { path: '/carrinho', name: `Carrinho${totalItens > 0 ? ` (${totalItens})` : ''}`, icon: '🛒' },
+  { path: '/perfil', name: 'Perfil', icon: '👤' },
+];
+
+const menuRestaurante = [
+  { path: '/restaurante', name: 'Dashboard', icon: '📊' },
+  { path: '/restaurante/pedidos', name: 'Pedidos Recebidos', icon: '🧾' },
+  { path: '/restaurante/cardapio', name: 'Meu Cardápio', icon: '📋' },
+  { path: '/perfil', name: 'Perfil', icon: '👤' },
+];
 
 function App() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { usuario, logout } = useAuth();
   const { totalItens } = useCarrinho();
   const isLoginPage = location.pathname === '/login';
+
+  const isRestaurante = usuario?.tipo === 'restaurante';
+  const menuItems = isRestaurante ? menuRestaurante : menuCliente(totalItens);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
-  const menuItems = [
-    { path: '/', name: 'Início (Lojas)', icon: '🏠' },
-    { path: '/favoritos', name: 'Meus Favoritos', icon: '❤️' },
-    { path: '/pedido', name: 'Meus Pedidos', icon: '🧾' },
-    { path: '/carrinho', name: `Carrinho${totalItens > 0 ? ` (${totalItens})` : ''}`, icon: '🛒' },
-    { path: '/perfil', name: 'Perfil', icon: '👤' },
-  ];
+  const isActive = (path) => {
+    if (path === '/' || path === '/restaurante') return location.pathname === path;
+    return location.pathname.startsWith(path);
+  };
 
   return (
     <div className="App">
-      {/* Menu Lateral - Ocultado na página de login */}
       {!isLoginPage && (
         <aside className="sidebar">
           <div className="sidebar-header">
             <h1>FoodDelivery</h1>
           </div>
 
+          {isRestaurante && (
+            <div className="sidebar-user-type">
+              <span className="sidebar-user-badge">🍽️ Restaurante</span>
+              {usuario?.nome && <span className="sidebar-user-name">{usuario.nome}</span>}
+            </div>
+          )}
+
           <nav className="sidebar-nav">
             <ul>
               {menuItems.map((item) => (
                 <li key={item.path}>
-                  {/* Trocamos o <button> pelo <Link> para mudar a URL sem recarregar a página */}
                   <Link
                     to={item.path}
-                    className={`menu-item ${location.pathname === item.path ? 'active' : ''}`}
+                    className={`menu-item ${isActive(item.path) ? 'active' : ''}`}
                     style={{ textDecoration: 'none' }}
                   >
                     <span className="icon">{item.icon}</span>
@@ -63,24 +81,33 @@ function App() {
           </nav>
 
           <div className="sidebar-footer">
-            <button className="menu-item logout" style={{ width: '100%', background: 'none', border: 'none', cursor: 'pointer' }} onClick={handleLogout}>
+            <button
+              className="menu-item logout"
+              style={{ width: '100%', background: 'none', border: 'none', cursor: 'pointer' }}
+              onClick={handleLogout}
+            >
               <span className="icon">🚪</span> Sair da conta
             </button>
           </div>
         </aside>
       )}
 
-      {/* Área de Conteúdo Principal */}
-      <main className={isLoginPage ? "" : "main-content"} style={isLoginPage ? { marginLeft: 0, padding: 0 } : {}}>
-        {/* O switch do useState foi substituído pelo <Routes> do React Router */}
+      <main className={isLoginPage ? '' : 'main-content'} style={isLoginPage ? { marginLeft: 0, padding: 0 } : {}}>
         <Routes>
+          {/* Rotas compartilhadas */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/perfil" element={<Perfil />} />
+
+          {/* Rotas do cliente */}
           <Route path="/" element={<Home />} />
-          <Route path="/loja/:id" element={<Loja />} /> {/* Rota dinâmica para a loja */}
-          <Route path="/favoritos" element={<Favoritos />} />
+          <Route path="/loja/:id" element={<Loja />} />
           <Route path="/pedido" element={<Pedido />} />
           <Route path="/carrinho" element={<Carrinho />} />
-          <Route path="/perfil" element={<Perfil />} />
-          <Route path="/login" element={<Login />} />
+
+          {/* Rotas do restaurante */}
+          <Route path="/restaurante" element={<RestauranteHome />} />
+          <Route path="/restaurante/cardapio" element={<RestauranteCardapio />} />
+          <Route path="/restaurante/pedidos" element={<RestaurantePedidos />} />
         </Routes>
       </main>
     </div>

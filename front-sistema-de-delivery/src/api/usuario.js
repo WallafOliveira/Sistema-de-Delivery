@@ -8,5 +8,11 @@ export const login = (email, senha) =>
 export const cadastrar = (dados) =>
   api.post('/api/usuario', dados);
 
+export const listarUsuarios = () =>
+  api.get('/api/usuario');
+
+export const buscarUsuario = (id) =>
+  api.get(`/api/usuario/${id}`);
+
 export const atualizarUsuario = (id, dados) =>
   api.put(`/api/usuario/${id}`, dados);

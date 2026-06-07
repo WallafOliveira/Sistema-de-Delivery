@@ -26,6 +26,7 @@ const Loja = () => {
   }, [id]);
 
   const handleAdicionar = (produto) => {
+    if (!restaurante?.estaAberto) return;
     adicionarItem(id, {
       produtoId: produto.id,
       nomeProduto: produto.nome,
@@ -67,13 +68,27 @@ const Loja = () => {
       </button>
 
       <header className="loja-header-info">
-        <div className="loja-capa">🍽️</div>
+        <div className="loja-capa">
+          {restaurante?.logo
+            ? <img src={restaurante.logo} alt={restaurante.nome} className="loja-capa-logo" />
+            : '🍽️'}
+        </div>
         <h2>{restaurante?.nome}</h2>
         <p>
           {restaurante?.estaAberto ? '🟢 Aberto' : '🔴 Fechado'} •{' '}
           📍 {restaurante?.endereco}
         </p>
       </header>
+
+      {!restaurante?.estaAberto && (
+        <div className="loja-fechado-banner">
+          <span>🔴</span>
+          <div>
+            <strong>Restaurante fechado</strong>
+            <p>Este restaurante não está aceitando pedidos no momento.</p>
+          </div>
+        </div>
+      )}
 
       <div className="cardapio-section">
         <h3>Cardápio</h3>
@@ -94,14 +109,20 @@ const Loja = () => {
                   </span>
                 </div>
                 <div className="item-acoes">
-                  <div className="item-img-mini">🍽️</div>
-                  <button
-                    className="btn-add-item"
-                    onClick={() => handleAdicionar(produto)}
-                    disabled={produto.quantidadeEstoque === 0}
-                  >
-                    + Adicionar
-                  </button>
+                  <div className="item-img-mini">
+                    {produto.imagemProduto
+                      ? <img src={produto.imagemProduto} alt={produto.nome} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '0.5rem' }} />
+                      : '🍽️'}
+                  </div>
+                  {restaurante?.estaAberto && (
+                    <button
+                      className="btn-add-item"
+                      onClick={() => handleAdicionar(produto)}
+                      disabled={produto.quantidadeEstoque === 0}
+                    >
+                      + Adicionar
+                    </button>
+                  )}
                 </div>
               </div>
             ))}

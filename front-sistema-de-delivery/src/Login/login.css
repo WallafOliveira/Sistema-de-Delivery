@@ -62,10 +62,11 @@
   z-index: 2;
   display: grid;
   grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr;
   width: 90%;
   max-width: 1050px;
-  height: 85vh;
-  max-height: 700px;
+  height: 90vh;
+  max-height: 780px;
   background: rgba(24, 24, 28, 0.75);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -86,6 +87,8 @@
   background-size: cover;
   background-position: center;
   color: #ffffff;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .brand-overlay {
@@ -156,16 +159,24 @@
 /* Lado do Formulário (Direito) */
 .login-form-side {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   padding: 48px;
   background: rgba(18, 18, 22, 0.85);
   overflow-y: auto;
+  min-height: 0;
+}
+
+.login-form-side .form-card {
+  width: 100%;
+  max-width: 400px;
+  padding: 8px 0;
 }
 
 .form-card {
   width: 100%;
   max-width: 400px;
+  margin: auto 0;
 }
 
 .form-header {
@@ -337,6 +348,63 @@
 
 .form-divider:not(:empty)::after {
   margin-left: 12px;
+}
+
+.tipo-tab-selector {
+  display: flex;
+  background: #f3f4f6;
+  border-radius: 10px;
+  padding: 4px;
+  gap: 4px;
+}
+
+.tipo-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 0;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: #6b7280;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tipo-tab:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.tipo-tab.active {
+  background: #ffffff;
+  color: #dc2626;
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+.login-section-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 8px 0 4px;
+  gap: 8px;
+}
+
+.login-section-divider::before,
+.login-section-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 /* Login Social */

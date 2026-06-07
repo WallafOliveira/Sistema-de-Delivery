@@ -12,11 +12,6 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState('');
 
-  const [favoritos, setFavoritos] = useState(() => {
-    const saved = localStorage.getItem('favoritos_restaurantes');
-    return saved ? JSON.parse(saved) : [];
-  });
-
   useEffect(() => {
     listarRestaurantes()
       .then(({ data }) => setRestaurantes(data))
@@ -24,17 +19,12 @@ const Home = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  const toggleFavorito = (id) => {
-    const novosFavoritos = favoritos.includes(id)
-      ? favoritos.filter((favId) => favId !== id)
-      : [...favoritos, id];
-    setFavoritos(novosFavoritos);
-    localStorage.setItem('favoritos_restaurantes', JSON.stringify(novosFavoritos));
-  };
-
   const restaurantesFiltrados = restaurantes.filter((r) =>
     r.nome.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const abertos = restaurantesFiltrados.filter((r) => r.estaAberto);
+  const fechados = restaurantesFiltrados.filter((r) => !r.estaAberto);
 
   const abrirLoja = (id) => navigate(`/loja/${id}`);
 
@@ -80,51 +70,68 @@ const Home = () => {
         </div>
       )}
 
-      <div className="section-title-wrapper">
-        <h3>Lojas Disponíveis</h3>
-        <span className="count-badge">
-          {restaurantesFiltrados.length}{' '}
-          {restaurantesFiltrados.length === 1 ? 'loja' : 'lojas'}
-        </span>
-      </div>
+      {restaurantesFiltrados.length === 0 && !erro && (
+        <div className="no-results-card">
+          <span className="no-results-icon">🔍</span>
+          <h4>Nenhuma loja encontrada</h4>
+          <p>Tente outro termo de busca.</p>
+        </div>
+      )}
 
-      {restaurantesFiltrados.length > 0 ? (
-        <div className="grid-lojas animate-fade-in">
-          {restaurantesFiltrados.map((loja) => (
-            <div key={loja.id} className="loja-card" onClick={() => abrirLoja(loja.id)}>
-              <div className="loja-img-wrapper">
-                <span className="loja-emoji-banner">{EMOJI_PADRAO}</span>
-                <span className={`loja-badge-category ${loja.estaAberto ? '' : 'fechado'}`}>
-                  {loja.estaAberto ? 'Aberto' : 'Fechado'}
-                </span>
-                <button
-                  className={`loja-favorite-btn ${favoritos.includes(loja.id) ? 'active' : ''}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleFavorito(loja.id);
-                  }}
-                  title={favoritos.includes(loja.id) ? 'Remover dos Favoritos' : 'Adicionar aos Favoritos'}
-                >
-                  {favoritos.includes(loja.id) ? '❤️' : '🤍'}
-                </button>
-              </div>
-              <div className="loja-card-content">
-                <h3>{loja.nome}</h3>
-                <div className="loja-meta-info">
-                  <span>📍 {loja.endereco}</span>
+      {abertos.length > 0 && (
+        <>
+          <div className="section-title-wrapper">
+            <h3 className="section-title-abertos">
+              <span className="dot-live" /> Abertos Agora
+            </h3>
+            <span className="count-badge">{abertos.length} {abertos.length === 1 ? 'loja' : 'lojas'}</span>
+          </div>
+          <div className="grid-lojas animate-fade-in">
+            {abertos.map((loja) => (
+              <div key={loja.id} className="loja-card" onClick={() => abrirLoja(loja.id)}>
+                <div className="loja-img-wrapper">
+                  {loja.logo
+                    ? <img src={loja.logo} alt={loja.nome} className="loja-logo-img" />
+                    : <span className="loja-emoji-banner">{EMOJI_PADRAO}</span>}
+                  <span className="loja-badge-category">Aberto</span>
+                </div>
+                <div className="loja-card-content">
+                  <h3>{loja.nome}</h3>
+                  <div className="loja-meta-info">
+                    <span>📍 {loja.endereco}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        !erro && (
-          <div className="no-results-card">
-            <span className="no-results-icon">🔍</span>
-            <h4>Nenhuma loja encontrada</h4>
-            <p>Tente outro termo de busca.</p>
+            ))}
           </div>
-        )
+        </>
+      )}
+
+      {fechados.length > 0 && (
+        <>
+          <div className="section-title-wrapper" style={{ marginTop: abertos.length > 0 ? '2rem' : '0' }}>
+            <h3>Fechados</h3>
+            <span className="count-badge">{fechados.length} {fechados.length === 1 ? 'loja' : 'lojas'}</span>
+          </div>
+          <div className="grid-lojas animate-fade-in grid-lojas-fechados">
+            {fechados.map((loja) => (
+              <div key={loja.id} className="loja-card loja-card-fechada" onClick={() => abrirLoja(loja.id)}>
+                <div className="loja-img-wrapper">
+                  {loja.logo
+                    ? <img src={loja.logo} alt={loja.nome} className="loja-logo-img" />
+                    : <span className="loja-emoji-banner">{EMOJI_PADRAO}</span>}
+                  <span className="loja-badge-category fechado">Fechado</span>
+                </div>
+                <div className="loja-card-content">
+                  <h3>{loja.nome}</h3>
+                  <div className="loja-meta-info">
+                    <span>📍 {loja.endereco}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
